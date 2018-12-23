@@ -30,6 +30,9 @@ screenSettings = {
     vsync = true
 }
 
+--whether we use AI
+AItoggle = false
+
 --load game
 function love.load()
     --retro filters
@@ -54,8 +57,8 @@ function love.load()
     p2Score = 0
 
     --player start pos
-    p1 = Paddle(10, 30, 5, 20)
-    p2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 20)
+    p1 = Paddle(10, 30, 5, 25)
+    p2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 25)
 
     --ball start pos
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
@@ -66,7 +69,7 @@ function love.load()
 
     gameState = "start"
     titleMessage =
-        "PONG\nPlayer 1 controls: W, S\nPlayer 2 controls: Up, Down\nPress Enter to Start,\nF for fullscreen, and Esc to quit"
+        "PONG\nPlayer 1 controls: W, S\nPlayer 2 controls: Up, Down\nPress Enter to play with another person\nPress Spacebar to play against CPU\nF for fullscreen, and Esc to quit"
 end
 
 --resize function
@@ -86,12 +89,25 @@ function love.update(dt)
     end
 
     --player2 controls
-    if love.keyboard.isDown("up") then
-        p2.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown("down") then
-        p2.dy = PADDLE_SPEED
-    else
-        p2.dy = 0
+    if not AItoggle then
+        if love.keyboard.isDown("up") then
+            p2.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown("down") then
+            p2.dy = PADDLE_SPEED
+        else
+            p2.dy = 0
+        end
+    end
+
+    --AI controls player2
+    if AItoggle then
+        if ball.x > VIRTUAL_WIDTH * (7 / 10) and ball.y + 8 > p2.y + 10 then
+            p2.dy = PADDLE_SPEED
+        elseif ball.x > VIRTUAL_WIDTH * (7 / 10) and ball.y - 8 < p2.y + 10 then
+            p2.dy = -PADDLE_SPEED
+        else
+            p2.dy = 0
+        end
     end
 
     --different states
@@ -220,7 +236,13 @@ function love.keypressed(key)
             screenSettings.fullscreen = true
             push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, screenSettings)
         end
-    elseif key == "enter" or key == "return" then
+    elseif key == "enter" or key == "return" or key == "space" then
+        
+        --spacebar to toggle AI
+        if key == "space" then
+            AItoggle = true
+        end
+
         if gameState == "start" then
             gameState = "serve"
             servingPlayer = math.random(2)
